@@ -24,20 +24,7 @@ export default async function IndexPage() {
                   <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed mx-auto">
                     Busque informações sobre CEPs, cidades e muito mais do Brasil com tecnologia avançada do Google
                   </p>
-                  <div className="flex flex-wrap justify-center gap-2 pt-4">
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <Globe className="h-3 w-3" />
-                      Google CSE
-                    </Badge>
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      Consulta CEP
-                    </Badge>
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <Zap className="h-3 w-3" />
-                      API Brasileira
-                    </Badge>
-                  </div>
+                  
                 </div>
 
                 {/* Search Form */}
