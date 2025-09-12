@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { AlertCircle, WifiOff, MapPin } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { fetchCepData } from "@/lib/cep-service"
+import { CepNavigation } from "@/components/cep-navigation"
 import Link from "next/link"
 
 export const dynamic = "force-dynamic"
@@ -41,7 +42,6 @@ export async function generateMetadata({ params }: PageProps) {
   const cleanCep = cep.replace(/\D/g, "").padStart(8, "0")
   const formattedCep = cleanCep.replace(/(\d{5})(\d{3})/, "$1-$2")
 
-  // Não fazer fetch aqui para evitar cache issues, usar dados estáticos
   return {
     title: `CEP ${formattedCep} | Brasil Search`,
     description: `Consulte informações completas do CEP ${formattedCep} no Brasil Search.`,
@@ -205,24 +205,26 @@ export default async function CepPage({ params }: PageProps) {
             </CardContent>
 
             <CardFooter>
-              {/* Navigation hints with prefetch */}
-              <div className="mt-6 text-center space-y-2">
-                <p className="text-sm text-muted-foreground">Use os botões acima para navegar entre CEPs adjacentes</p>
-                <div className="flex justify-center gap-2">
-                  <Link href="/" prefetch={true}>
-                    <Button variant="ghost" size="sm">
-                      Voltar ao início
-                    </Button>
-                  </Link>
-                  <Link href="/about" prefetch={true}>
-                    <Button variant="ghost" size="sm">
-                      Sobre o projeto
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+              <CepNavigation currentCep={code} />
             </CardFooter>
           </Card>
+
+          {/* Navigation hints */}
+          <div className="mt-6 text-center space-y-2">
+            <p className="text-sm text-muted-foreground">Use os botões acima para navegar entre CEPs adjacentes</p>
+            <div className="flex justify-center gap-2">
+              <Link href="/" prefetch={true}>
+                <Button variant="ghost" size="sm">
+                  Voltar ao início
+                </Button>
+              </Link>
+              <Link href="/about" prefetch={true}>
+                <Button variant="ghost" size="sm">
+                  Sobre o projeto
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </main>
       <Footer />
