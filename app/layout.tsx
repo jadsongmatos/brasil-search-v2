@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
   },
-    generator: 'v0.app'
+  generator: "v0.app",
 }
 
 interface RootLayoutProps {
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="pt-BR" className="dark">
       <head>
         {/* Google CSE Meta Tags */}
-        <meta name="google-site-verification" content="your-verification-code" />
+        <meta name="google-site-verification" content="K6n_i0D944OJIJwD-M5iQ-jy3oAKFS5aTTL3uJOpy9I" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://your-domain.com" />
         {/* Enhanced global error handler for CSE selector issues */}
@@ -95,7 +95,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={cn("min-h-screen bg-background font-sans antialiased")}>
         {children}
         {/* Background CEP prefetching */}
-        <CepPrefetchBackground/>
+        <CepPrefetchBackground />
       </body>
     </html>
   )
