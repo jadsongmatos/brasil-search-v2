@@ -3,17 +3,59 @@ import type { Metadata } from "next"
 import "@/app/globals.css"
 import { cn } from "@/lib/utils"
 import { CepPrefetchBackground } from "@/components/cep-prefetch-background"
+import { MuiThemeProvider } from "@/components/mui-theme-provider"
 
 export const metadata: Metadata = {
-  title: "Brasil Search - Busca CEPs e Informações do Brasil",
-  description: "Busque informações sobre CEPs, cidades e muito mais do Brasil com Google Custom Search integrado",
-  keywords: "CEP, Brasil, busca, endereço, código postal, cidades, estados, Google CSE",
+  metadataBase: new URL("https://v0-brasil-search.vercel.app"),
+  title: {
+    default: "Brasil Search - Busca CEPs e Informações do Brasil",
+    template: "%s | Brasil Search",
+  },
+  description: "Busque informações sobre CEPs, cidades e muito mais do Brasil",
+  keywords: "CEP, Brasil, busca, endereço, código postal, cidades, estados, consulta CEP",
   authors: [{ name: "Brasil Search" }],
+  creator: "Brasil Search",
+  publisher: "Brasil Search",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
     title: "Brasil Search",
     description: "Busque informações sobre CEPs, cidades e muito mais do Brasil",
+    url: "https://v0-brasil-search.vercel.app",
+    siteName: "Brasil Search",
     type: "website",
     locale: "pt_BR",
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Brasil Search Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Brasil Search - Busca CEPs e Informações do Brasil",
+    description: "Busque informações sobre CEPs, cidades e muito mais do Brasil",
+    images: ["/images/logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "https://v0-brasil-search.vercel.app",
   },
   generator: "v0.app",
 }
@@ -26,76 +68,102 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="pt-BR" className="dark">
       <head>
-        {/* Google CSE Meta Tags */}
-        <meta name="google-site-verification" content="K6n_i0D944OJIJwD-M5iQ-jy3oAKFS5aTTL3uJOpy9I" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://your-domain.com" />
-        {/* Enhanced global error handler for CSE selector issues */}
+        {/* CRITICAL: querySelector protection MUST load FIRST */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // Global CSE state management
-              window.__cseLoaded = false;
-              window.__cseInitialized = false;
+              (function() {
+                'use strict';
+                
+                var origQS = Document.prototype.querySelector;
+                var origQSA = Document.prototype.querySelectorAll;
+                var origElemQS = Element.prototype.querySelector;
+                var origElemQSA = Element.prototype.querySelectorAll;
 
-              // Global error handler for CSE selector issues
-              window.addEventListener('error', function(e) {
-                if (e.message && (e.message.includes('querySelector') || e.message.includes('gsc.tab'))) {
-                  console.warn('CSE selector error handled globally:', e.message);
-                  e.preventDefault();
-                  e.stopPropagation();
-                  return false;
+                function isBadSelector(sel) {
+                  return typeof sel === 'string' && /[#.][^\\s#.\\[\\]\$$\$$]+[=]/.test(sel);
                 }
-              }, true);
 
-              // Override console.error to filter CSE errors
-              const originalConsoleError = console.error;
-              console.error = function(...args) {
-                const message = args.join(' ');
-                if (message.includes('querySelector') && message.includes('gsc.tab')) {
-                  console.warn('CSE error filtered:', message);
-                  return;
-                }
-                originalConsoleError.apply(console, args);
-              };
+                Document.prototype.querySelector = function(s) {
+                  if (isBadSelector(s)) return null;
+                  try { return origQS.call(this, s); } catch(e) { return null; }
+                };
 
-              // Enhanced querySelector override
-              const originalQuerySelector = Document.prototype.querySelector;
-              const originalQuerySelectorAll = Document.prototype.querySelectorAll;
+                Document.prototype.querySelectorAll = function(s) {
+                  if (isBadSelector(s)) return [];
+                  try { return origQSA.call(this, s); } catch(e) { return []; }
+                };
 
-              Document.prototype.querySelector = function(selector) {
-                try {
-                  if (selector.includes('#gsc.tab=') || selector.includes('.tab=') || selector.match(/[#.][^#.\\s]*=/)) {
-                    console.warn('Invalid selector intercepted globally:', selector);
-                    return null;
+                Element.prototype.querySelector = function(s) {
+                  if (isBadSelector(s)) return null;
+                  try { return origElemQS.call(this, s); } catch(e) { return null; }
+                };
+
+                Element.prototype.querySelectorAll = function(s) {
+                  if (isBadSelector(s)) return [];
+                  try { return origElemQSA.call(this, s); } catch(e) { return []; }
+                };
+
+                window.addEventListener('error', function(e) {
+                  if (e.message && e.message.indexOf('not a valid selector') !== -1) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
                   }
-                  return originalQuerySelector.call(this, selector);
-                } catch (error) {
-                  console.warn('Global querySelector error:', error);
-                  return null;
-                }
-              };
+                }, true);
 
-              Document.prototype.querySelectorAll = function(selector) {
-                try {
-                  if (selector.includes('#gsc.tab=') || selector.includes('.tab=') || selector.match(/[#.][^#.\\s]*=/)) {
-                    console.warn('Invalid selector intercepted globally:', selector);
-                    return document.createDocumentFragment().querySelectorAll('div');
+                var origConsoleError = console.error;
+                console.error = function() {
+                  var args = Array.prototype.slice.call(arguments);
+                  var msg = args.join(' ');
+                  if (msg.indexOf('not a valid selector') !== -1 && msg.indexOf('gsc') !== -1) {
+                    return;
                   }
-                  return originalQuerySelectorAll.call(this, selector);
-                } catch (error) {
-                  console.warn('Global querySelectorAll error:', error);
-                  return document.createDocumentFragment().querySelectorAll('div');
-                }
-              };
+                  origConsoleError.apply(console, args);
+                };
+              })();
             `,
+          }}
+        />
+
+        {/* Google Site Verification */}
+        <meta name="google-site-verification" content="K6n_i0D944OJIJwD-M5iQ-jy3oAKFS5aTTL3uJOpy9I" />
+
+        {/* Additional SEO Meta Tags */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta httpEquiv="x-ua-compatible" content="ie=edge" />
+        <meta name="theme-color" content="#000000" />
+
+        {/* Google Custom Search Engine - loads AFTER protection */}
+        <script async src="https://cse.google.com/cse.js?cx=e7e2e0b1ebd0945c6"></script>
+
+        {/* Structured Data for Organization */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Brasil Search",
+              url: "https://v0-brasil-search.vercel.app",
+              description: "Busque informações sobre CEPs, cidades e muito mais do Brasil",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: "https://v0-brasil-search.vercel.app/cep/{search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
+            }),
           }}
         />
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased")}>
-        {children}
-        {/* Background CEP prefetching */}
-        <CepPrefetchBackground />
+        <MuiThemeProvider>
+          {children}
+          <CepPrefetchBackground />
+        </MuiThemeProvider>
       </body>
     </html>
   )

@@ -7,19 +7,27 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MapPin, Sparkles } from "lucide-react"
-import { GoogleCSE } from "@/components/google-cse"
+import { MapPin, Sparkles, Search } from "lucide-react"
 
 export function SearchForm() {
   const [cep, setCep] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
 
   const handleCepSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (cep.trim()) {
       const cleanCep = cep.replace(/\D/g, "").padStart(8, "0")
-      // Navegação simples sem prefetch
       window.location.href = `/cep/${cleanCep}`
+    }
+  }
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      // Use Google search with site: parameter - more reliable than CSE
+      const query = encodeURIComponent(`site:v0-brasil-search.vercel.app ${searchQuery}`)
+      window.open(`https://www.google.com/search?q=${query}`, "_blank")
     }
   }
 
@@ -52,6 +60,7 @@ export function SearchForm() {
               value="search"
               className="flex items-center gap-2 text-base py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md transition-all"
             >
+              <Search className="h-5 w-5" />
               Busca no Site
             </TabsTrigger>
             <TabsTrigger
@@ -65,13 +74,38 @@ export function SearchForm() {
 
           <TabsContent value="search" className="space-y-6">
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">Busca Avançada com Google</h3>
+              <h3 className="text-lg font-semibold">Busca no Site</h3>
               <p className="text-muted-foreground">
-                Use o Google Custom Search para encontrar conteúdo específico do Brasil Search com resultados precisos e
-                relevantes
+                Busque por CEPs, cidades ou qualquer informação no Brasil Search. Resultados serão abertos no Google.
               </p>
             </div>
-            <GoogleCSE className="border-0 shadow-none p-0" />
+
+            <form onSubmit={handleSearchSubmit} className="space-y-6">
+              <div className="space-y-3">
+                <label htmlFor="search" className="text-sm font-medium">
+                  O que você está procurando?
+                </label>
+                <Input
+                  id="search"
+                  type="text"
+                  placeholder="Digite sua busca..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="text-lg py-6"
+                />
+              </div>
+              <Button type="submit" className="w-full py-6 text-lg" disabled={!searchQuery.trim()}>
+                <Search className="mr-2 h-5 w-5" />
+                Buscar no Site
+              </Button>
+            </form>
+
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                💡 <strong>Dica:</strong> A busca usa o Google para encontrar conteúdo específico do Brasil Search com
+                resultados precisos e relevantes.
+              </p>
+            </div>
           </TabsContent>
 
           <TabsContent value="cep" className="space-y-6">
